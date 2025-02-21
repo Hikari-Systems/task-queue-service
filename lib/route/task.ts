@@ -28,7 +28,7 @@ router.get('/available/:key', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   const taskId = req.params.id as string;
   if (!taskId) {
-    return res.status(400).send(`No threadId provided`);
+    return res.status(400).send(`No taskId provided`);
   }
   try {
     const task = await taskModel.get(taskId);
@@ -44,11 +44,11 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/', express.json(), async (req, res, next) => {
-  const { description, toBeProcessedBy, readinessCheckedBy, runArgsJson } =
+  const { description, toBeProcessedBy, readinessCheckBy, runArgsJson } =
     req.body as {
       description: string;
       toBeProcessedBy: string;
-      readinessCheckedBy?: string;
+      readinessCheckBy?: string;
       runArgsJson: string;
     };
 
@@ -68,14 +68,57 @@ router.post('/', express.json(), async (req, res, next) => {
       id: v4(),
       description,
       toBeProcessedBy,
-      readinessCheckedBy,
+      readinessCheckBy,
       runArgs,
-      inProgress: false,
-      completed: false,
     });
     return res.status(201).json(task);
   } catch (e) {
     log.error(`Error adding task for ${JSON.stringify(req.body)}`, e);
+    return next(e);
+  }
+});
+
+router.put('/:id/started', express.json(), async (req, res, next) => {
+  const taskId = req.params.id as string;
+  if (!taskId) {
+    return res.status(400).send(`No taskId provided`);
+  }
+
+  try {
+    const started = await taskModel.markStartedAt(taskId);
+    return res.status(200).json({ id: taskId, started });
+  } catch (e) {
+    log.error(`Error marking task started for ${taskId}`, e);
+    return next(e);
+  }
+});
+
+router.delete('/:id/started', express.json(), async (req, res, next) => {
+  const taskId = req.params.id as string;
+  if (!taskId) {
+    return res.status(400).send(`No taskId provided`);
+  }
+
+  try {
+    await taskModel.clearStartedAt(taskId);
+    return res.status(200).json({ id: taskId, started: false });
+  } catch (e) {
+    log.error(`Error clearing task started for ${taskId}`, e);
+    return next(e);
+  }
+});
+
+router.put('/:id/completed', express.json(), async (req, res, next) => {
+  const taskId = req.params.id as string;
+  if (!taskId) {
+    return res.status(400).send(`No taskId provided`);
+  }
+
+  try {
+    await taskModel.markCompletedAt(taskId);
+    return res.status(200).json({ id: taskId, completed: true });
+  } catch (e) {
+    log.error(`Error marking task completed for ${taskId}`, e);
     return next(e);
   }
 });

@@ -1,13 +1,14 @@
 import { Knex } from 'knex';
+import { Dayjs } from 'dayjs';
 
 export interface Task {
   id?: string;
   description: string;
   toBeProcessedBy: string;
-  readinessCheckedBy?: string;
+  readinessCheckBy?: string;
   runArgs: object;
-  inProgress: boolean;
-  completed: boolean;
+  startedAt?: Dayjs;
+  completedAt?: Dayjs;
 }
 
 const insert = (db: Knex) => (task: Task) =>
@@ -47,21 +48,35 @@ const get =
 const getAll = (db: Knex) => () =>
   db.select().from('task').orderBy('createdAt', 'asc');
 
-const markInProgress = (db: Knex) => (id: string) =>
-  db('task').update('inProgress', true).where('id', id);
+const clearStartedAt = (db: Knex) => (id: string) =>
+  db('task')
+    .update({
+      startedAt: null,
+      completedAt: null,
+    })
+    .where('id', id);
 
-const clearInProgress = (db: Knex) => (id: string) =>
-  db('task').update('inProgress', false).where('id', id);
+const markStartedAt = (db: Knex) => (id: string) =>
+  db('task')
+    .update({
+      startedAt: new Dayjs(),
+      completedAt: null,
+    })
+    .where('id', id)
+    .whereNull('startedAt')
+    .whereNull('completedAt')
+    .returning('*')
+    .then((r) => r.length > 0);
 
-const markComplete = (db: Knex) => (id: string) =>
-  db('task').update('completed', true).where('id', id);
+const markCompletedAt = (db: Knex) => (id: string) =>
+  db('task').update('completedAt', new Dayjs()).where('id', id);
 
 const getAllAvailableByKey = (db: Knex) => (toBeProcessedBy: string) =>
   db
     .select()
     .from('task')
-    .where('completed', false)
-    .where('inProgress', false)
+    .whereNull('startedAt')
+    .whereNull('completedAt')
     .where('toBeProcessedBy', toBeProcessedBy)
     .orderBy('createdAt', 'asc');
 
@@ -71,7 +86,7 @@ export default (db: Knex) => ({
   get: get(db),
   getAll: getAll(db),
   getAllAvailableByKey: getAllAvailableByKey(db),
-  markInProgress: markInProgress(db),
-  clearInProgress: clearInProgress(db),
-  markComplete: markComplete(db),
+  markStartedAt: markStartedAt(db),
+  clearStartedAt: clearStartedAt(db),
+  markCompletedAt: markCompletedAt(db),
 });

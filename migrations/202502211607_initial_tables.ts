@@ -6,10 +6,10 @@ export const up = (knex: Knex) =>
       t.uuid('id').primary().notNullable();
       t.string('description', 400).notNullable();
       t.string('toBeProcessedBy', 400).notNullable();
-      t.string('readinessCheckedBy', 400);
+      t.string('readinessCheckBy', 400);
       t.jsonb('runArgs').notNullable();
-      t.boolean('inProgress').notNullable().defaultTo(false);
-      t.boolean('completed').notNullable().defaultTo(false);
+      t.timestamp('startedAt');
+      t.timestamp('completedAt');
       t.timestamps();
     })
     .createTable('taskLog', (t) => {
