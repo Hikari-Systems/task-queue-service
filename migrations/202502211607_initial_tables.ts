@@ -6,6 +6,7 @@ export const up = (knex: Knex) =>
       t.uuid('id').primary().notNullable();
       t.string('description', 400).notNullable();
       t.string('toBeProcessedBy', 400).notNullable();
+      t.string('readinessCheckedBy', 400);
       t.jsonb('runArgs').notNullable();
       t.boolean('inProgress').notNullable().defaultTo(false);
       t.boolean('completed').notNullable().defaultTo(false);
