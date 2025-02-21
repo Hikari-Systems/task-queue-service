@@ -44,11 +44,13 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/', express.json(), async (req, res, next) => {
-  const { description, toBeProcessedBy, runArgsJson } = req.body as {
-    description: string;
-    toBeProcessedBy: string;
-    runArgsJson: string;
-  };
+  const { description, toBeProcessedBy, readinessCheckedBy, runArgsJson } =
+    req.body as {
+      description: string;
+      toBeProcessedBy: string;
+      readinessCheckedBy?: string;
+      runArgsJson: string;
+    };
 
   // check args json
   let runArgs: object;
@@ -66,6 +68,7 @@ router.post('/', express.json(), async (req, res, next) => {
       id: v4(),
       description,
       toBeProcessedBy,
+      readinessCheckedBy,
       runArgs,
       inProgress: false,
       completed: false,

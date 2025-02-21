@@ -3,7 +3,8 @@ import { Knex } from 'knex';
 export interface Task {
   id?: string;
   description: string;
-  toBeProcessedBy?: string;
+  toBeProcessedBy: string;
+  readinessCheckedBy?: string;
   runArgs: object;
   inProgress: boolean;
   completed: boolean;
