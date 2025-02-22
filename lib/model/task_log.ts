@@ -12,14 +12,22 @@ export interface TaskLog {
 
 const insert = (db: Knex) => (taskLog: TaskLog) =>
   db
-    .insert({ ...taskLog, createdAt: new Date() })
+    .insert({
+      ...taskLog,
+      runLog: taskLog.runLog ? JSON.stringify(taskLog.runLog) : null,
+      createdAt: new Date(),
+    })
     .into('taskLog')
     .returning('*')
     .then((r) => r[0]);
 
 const update = (db: Knex) => (taskLog: TaskLog) =>
   db('taskLog')
-    .update({ ...taskLog, updatedAt: new Date() })
+    .update({
+      ...taskLog,
+      runLog: taskLog.runLog ? JSON.stringify(taskLog.runLog) : null,
+      updatedAt: new Date(),
+    })
     .where('id', taskLog.id)
     .returning('*')
     .then((r) => r[0]);
