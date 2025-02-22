@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 export interface Task {
   id?: string;
@@ -59,7 +59,7 @@ const clearStartedAt = (db: Knex) => (id: string) =>
 const markStartedAt = (db: Knex) => (id: string) =>
   db('task')
     .update({
-      startedAt: new Dayjs(),
+      startedAt: dayjs(),
       completedAt: null,
     })
     .where('id', id)
@@ -69,7 +69,7 @@ const markStartedAt = (db: Knex) => (id: string) =>
     .then((r) => r.length > 0);
 
 const markCompletedAt = (db: Knex) => (id: string) =>
-  db('task').update('completedAt', new Dayjs()).where('id', id);
+  db('task').update('completedAt', dayjs()).where('id', id);
 
 const getAllAvailableByKey = (db: Knex) => (toBeProcessedBy: string) =>
   db
