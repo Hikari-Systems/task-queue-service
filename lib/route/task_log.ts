@@ -2,7 +2,7 @@ import express from 'express';
 import { v4 } from 'uuid';
 import dayjs from 'dayjs';
 import { logging } from '@hikari-systems/hs.utils';
-import { taskLogModel } from '../model';
+import { taskLogModel, taskModel } from '../model';
 
 const log = logging('routes:task_log');
 
@@ -36,15 +36,20 @@ router.post('/', express.json(), async (req, res, next) => {
     runLog?: string;
   };
   try {
+    const parsedExitCode =
+      (exitCode || '') !== '' ? parseInt(exitCode || '', 10) : undefined;
     const tasklog = await taskLogModel.insert({
       id: v4(),
       taskId,
-      exitCode:
-        (exitCode || '') !== '' ? parseInt(exitCode || '', 10) : undefined,
+      exitCode: parsedExitCode,
       startedAt: dayjs(startedAt),
       endedAt: (endedAt || '') !== '' ? dayjs(endedAt || '') : undefined,
       runLog: (runLog || '') !== '' ? JSON.parse(runLog || '') : undefined,
     });
+    // Decrement retries if task failed (non-zero exit code)
+    if (parsedExitCode !== undefined && parsedExitCode !== 0) {
+      await taskModel.decrementRetriesRemaining(taskId);
+    }
     return res.status(201).json(tasklog);
   } catch (e) {
     log.error(`Error adding tasklog for ${JSON.stringify(req.body)}`, e);
@@ -66,13 +71,23 @@ router.put('/:id', express.json(), async (req, res, next) => {
       log.error(`Updating non-existent tasklog row: ${id}`);
       return res.status(400).send(`Updating non-existent tasklog row: ${id}`);
     }
+    const parsedExitCode =
+      (exitCode || '') !== '' ? parseInt(exitCode || '', 10) : undefined;
+    const oldExitCode = oldLog.exitCode;
     const tasklog = await taskLogModel.update({
       ...oldLog,
-      exitCode:
-        (exitCode || '') !== '' ? parseInt(exitCode || '', 10) : undefined,
+      exitCode: parsedExitCode,
       endedAt: (endedAt || '') !== '' ? dayjs(endedAt || '') : undefined,
       runLog: (runLog || '') !== '' ? JSON.parse(runLog || '') : undefined,
     });
+    // Decrement retries if task failed (non-zero exit code) and wasn't already failed
+    if (
+      parsedExitCode !== undefined &&
+      parsedExitCode !== 0 &&
+      (oldExitCode === undefined || oldExitCode === 0)
+    ) {
+      await taskModel.decrementRetriesRemaining(oldLog.taskId);
+    }
     return res.status(201).json(tasklog);
   } catch (e) {
     log.error(`Error updating tasklog for ${JSON.stringify(req.body)}`, e);
