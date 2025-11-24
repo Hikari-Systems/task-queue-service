@@ -13,7 +13,7 @@
     "start": "node es5/server.js"
   },
   "dependencies": {
-    "@hikari-systems/hs.utils": "^0.0.53",
+    "@hikari-systems/hs.utils": "^0.0.56",
     "dayjs": "^1.11.13",
     "death": "^1.1.0",
     "esbuild": "^0.25.4",
