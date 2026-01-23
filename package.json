@@ -1,7 +1,8 @@
 {
   "name": "task-queue-service",
   "version": "0.0.1",
-  "author": "rick.knowles@hikari-systems.com",
+  "author": "Rick Knowles <rick.knowles@hikari-systems.com>",
+  "license": "Apache-2.0",
   "description": "maintains a list of tasks that need to be carried out as background items",
   "scripts": {
     "test": "jest -i",
@@ -13,7 +14,8 @@
     "start": "node es5/server.js"
   },
   "dependencies": {
-    "@hikari-systems/hs.utils": "^0.0.56",
+    "@hikari-systems/hs.utils": "^0.0.57",
+    "bluebird": "^3.7.2",
     "dayjs": "^1.11.13",
     "death": "^1.1.0",
     "esbuild": "^0.25.4",
@@ -21,6 +23,7 @@
     "knex": "^3.1.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.snakecase": "^4.1.1",
+    "luxon": "^3.7.2",
     "pg": "^8.16.0",
     "pg-query-stream": "^4.10.0",
     "uuid": "^11.1.0"
