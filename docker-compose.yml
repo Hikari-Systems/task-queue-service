@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - '3001:3000'
+    read_only: true
+    environment:
+      db__host: task-queue-service-db
+      db__username: task-queue-service
+      db__password: task-queue-service
+      db__database: task-queue-service
+      db__port: "5432"
+    healthcheck:
+      test: ["CMD", "/app/task-queue-service", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      task-queue-service-db:
+        condition: service_healthy
+    links:
+      - task-queue-service-db
+
+  task-queue-service-db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: task-queue-service
+      POSTGRES_USER: task-queue-service
+      POSTGRES_PASSWORD: task-queue-service
+    ports: ["5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -h task-queue-service-db -U task-queue-service"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
